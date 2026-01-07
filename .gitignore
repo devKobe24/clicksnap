@@ -39,3 +39,10 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Spring Boot profile config ###
+application-dev.yml
+application-prod.yml
+application-*.yml
+!application.yml
+!application-*-example.yml
