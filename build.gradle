@@ -32,8 +32,8 @@ dependencies {
     // 3. Database (JPA): 파일 경로 등 메타데이터 저장
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-    // 4. DB Driver (H2): 개발 초기 단계에서 가볍게 쓸 인메모리 DB
-    // 나중에 MySQL로 배포할 땐 'com.mysql:mysql-connector-j' 로 교체하면 됩니다.
+    // 4. Database (MySQL, H2)
+    runtimeOnly 'com.mysql:mysql-connector-j'
     runtimeOnly 'com.h2database:h2'
 
     // 5. Lombok: Getter, Setter, Builder 등 보일러플레이트 코드 제거
