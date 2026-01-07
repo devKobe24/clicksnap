@@ -1,3 +1,14 @@
 spring:
   application:
     name: clicksnap
+
+  profiles:
+    active: dev
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+file:
+  access-url-prefix: /images/
