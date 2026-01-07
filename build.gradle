@@ -1,0 +1,52 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.3.5'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.clicksnap'
+version = '0.0.1-SNAPSHOT'
+description = 'clicksnap'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+bootJar {
+    archiveFileName = 'click-snap-0.0.0.jar'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+// 1. Web: REST API 및 파일 업로드(Multipart) 처리를 위해 필수
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // 2. Validation: 요청 데이터 검증 (@NotNull, @Size 등)
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // 3. Database (JPA): 파일 경로 등 메타데이터 저장
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // 4. DB Driver (H2): 개발 초기 단계에서 가볍게 쓸 인메모리 DB
+    // 나중에 MySQL로 배포할 땐 'com.mysql:mysql-connector-j' 로 교체하면 됩니다.
+    runtimeOnly 'com.h2database:h2'
+
+    // 5. Lombok: Getter, Setter, Builder 등 보일러플레이트 코드 제거
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // 6. DevTools: 서버 재시작 없이 코드 변경 반영 (개발 생산성 UP)
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // 7. Test: 테스트 코드 작성용
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
