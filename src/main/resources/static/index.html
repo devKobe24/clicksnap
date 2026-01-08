@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ClickSnap - 찰칵찰칵</title>
+
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <h1>📸 ClickSnap 찰칵찰칵</h1>
+
+    <div class="container">
+      <video id="video" autoplay playsinline></video>
+      <div id="countdown">3</div>
+      <div id="flash"></div>
+    </div>
+
+
+    <div class="controls">
+      <button id="startBtn">촬영 시작하기</button>
+    </div>
+
+    <div id="resultArea">
+      <h2>✨ 완성된 사진 ✨</h2>
+      <img id="resultImg" src="" alt="결과 이미지" />
+      <div class="result-buttons">
+        <button id="retakeBtn">다시 찍기</button>
+        <button id="filterBtn" style="display: none;">필터 고르기</button>
+        <button id="downloadBtn">사진 저장</button>
+      </div>
+    </div>
+
+    <!-- 필터 선택 모달 -->
+    <div id="filterModal" class="filter-modal">
+      <div class="filter-modal-content">
+        <h3>필터 선택</h3>
+        <div class="filter-options">
+          <button class="filter-option" data-filter="original">Original</button>
+          <button class="filter-option" data-filter="sharp">Clearly</button>
+          <button class="filter-option" data-filter="mono">Monochrome</button>
+          <button class="filter-option" data-filter="sepia">Sepia</button>
+          <button class="filter-option" data-filter="warm">Warm</button>
+          <button class="filter-option" data-filter="cool">Cool</button>
+          <button class="filter-option" data-filter="vintage">Vintage</button>
+          <button class="filter-option" data-filter="fade">Fade</button>
+          <button class="filter-option" data-filter="milk">Milk</button>
+          <button class="filter-option" data-filter="film">Film</button>
+          <button class="filter-option" data-filter="retro">Retro</button>
+        </div>
+        <button id="closeFilterModal" class="close-btn">닫기</button>
+      </div>
+    </div>
+
+    <canvas id="canvas" style="display: none"></canvas>
+
+    <script src="js/script.js" defer></script>
+  </body>
+</html>

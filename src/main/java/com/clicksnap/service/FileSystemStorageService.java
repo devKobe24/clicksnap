@@ -65,7 +65,11 @@ public class FileSystemStorageService implements StorageService {
         }
 
         // 1. 원본 파일명 보호 (Path Traversal 공격 방지용 정제)
-        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || originalFilename.isEmpty()) {
+            originalFilename = "unknown";
+        }
+        originalFilename = StringUtils.cleanPath(originalFilename);
 
         try {
             // 2. 파일명 중복 방지를 위한 UUID 생성
@@ -78,7 +82,8 @@ public class FileSystemStorageService implements StorageService {
                     .normalize().toAbsolutePath();
 
             // 4. 보안 체크: 저장하려는 경로가 설정된 rootLocation 내부에 있는지 확인
-            if (!destinationFile.getParent().equals(this.rootLocation.toAbsolutePath())) {
+            Path rootLocationAbsolute = this.rootLocation.toAbsolutePath().normalize();
+            if (!destinationFile.startsWith(rootLocationAbsolute)) {
                 throw new RuntimeException("현재 디렉토리 밖에는 저장할 수 없습니다.");
             }
 
