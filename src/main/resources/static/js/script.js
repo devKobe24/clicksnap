@@ -20,6 +20,126 @@ window.CLICKSNAP_FILTERS = {
   retro: { name: "Retro", filter: "hue-rotate(15deg) contrast(1.2) saturate(1.3)" }
 };
 
+// Canvas filter 지원 여부 확인 (모든 브라우저 호환성)
+const supportsCanvasFilter = (() => {
+  try {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (typeof ctx.filter === "undefined") {
+      return false;
+    }
+    // 실제로 필터가 작동하는지 테스트
+    ctx.filter = "grayscale(100%)";
+    return ctx.filter === "grayscale(100%)";
+  } catch (e) {
+    return false;
+  }
+})();
+
+// 픽셀 단위 필터 적용 함수 (호환성 fallback)
+function applyPixelFilter(imageData, filterType) {
+  const data = imageData.data;
+  const length = data.length;
+  
+  for (let i = 0; i < length; i += 4) {
+    let r = data[i];
+    let g = data[i + 1];
+    let b = data[i + 2];
+    
+    switch (filterType) {
+      case "mono":
+        // 그레이스케일
+        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+        data[i] = gray;
+        data[i + 1] = gray;
+        data[i + 2] = gray;
+        break;
+        
+      case "sepia":
+        // 세피아 톤
+        const sepiaR = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
+        const sepiaG = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
+        const sepiaB = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
+        data[i] = sepiaR;
+        data[i + 1] = sepiaG;
+        data[i + 2] = sepiaB;
+        break;
+        
+      case "warm":
+        // 따뜻한 톤 (빨강/노랑 강조)
+        data[i] = Math.min(255, r * 1.1);
+        data[i + 1] = Math.min(255, g * 1.05);
+        data[i + 2] = Math.min(255, b * 0.95);
+        break;
+        
+      case "cool":
+        // 차가운 톤 (파랑 강조)
+        data[i] = Math.min(255, r * 0.9);
+        data[i + 1] = Math.min(255, g * 0.95);
+        data[i + 2] = Math.min(255, b * 1.1);
+        break;
+        
+      case "vintage":
+        // 빈티지 (세피아 + 대비)
+        const vintageR = Math.min(255, ((r * 0.393) + (g * 0.769) + (b * 0.189)) * 1.1);
+        const vintageG = Math.min(255, ((r * 0.349) + (g * 0.686) + (b * 0.168)) * 1.1);
+        const vintageB = Math.min(255, ((r * 0.272) + (g * 0.534) + (b * 0.131)) * 1.1);
+        data[i] = vintageR;
+        data[i + 1] = vintageG;
+        data[i + 2] = vintageB;
+        break;
+        
+      case "fade":
+        // 페이드 (밝기 증가, 채도 감소)
+        data[i] = Math.min(255, r * 1.1);
+        data[i + 1] = Math.min(255, g * 1.1);
+        data[i + 2] = Math.min(255, b * 1.1);
+        // 채도 감소
+        const avg = (r + g + b) / 3;
+        data[i] = (data[i] * 0.9 + avg * 0.1);
+        data[i + 1] = (data[i + 1] * 0.9 + avg * 0.1);
+        data[i + 2] = (data[i + 2] * 0.9 + avg * 0.1);
+        break;
+        
+      case "milk":
+        // 밀크 톤 (밝고 부드러운)
+        data[i] = Math.min(255, r * 1.15);
+        data[i + 1] = Math.min(255, g * 1.15);
+        data[i + 2] = Math.min(255, b * 1.15);
+        break;
+        
+      case "film":
+        // 필름 효과 (세피아 + 대비)
+        const filmR = Math.min(255, ((r * 0.393) + (g * 0.769) + (b * 0.189)) * 1.15);
+        const filmG = Math.min(255, ((r * 0.349) + (g * 0.686) + (b * 0.168)) * 1.15);
+        const filmB = Math.min(255, ((r * 0.272) + (g * 0.534) + (b * 0.131)) * 1.15);
+        data[i] = filmR;
+        data[i + 1] = filmG;
+        data[i + 2] = filmB;
+        break;
+        
+      case "retro":
+        // 레트로 (색조 회전 + 대비)
+        const retroR = Math.min(255, r * 1.2);
+        const retroG = Math.min(255, g * 1.1);
+        const retroB = Math.min(255, b * 0.9);
+        data[i] = retroR;
+        data[i + 1] = retroG;
+        data[i + 2] = retroB;
+        break;
+        
+      case "sharp":
+        // 선명하게 (대비 증가)
+        data[i] = Math.min(255, Math.max(0, (r - 128) * 1.2 + 128));
+        data[i + 1] = Math.min(255, Math.max(0, (g - 128) * 1.2 + 128));
+        data[i + 2] = Math.min(255, Math.max(0, (b - 128) * 1.2 + 128));
+        break;
+    }
+  }
+  
+  return imageData;
+}
+
 // DOM 요소 선택
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
@@ -294,7 +414,7 @@ function downloadPhoto() {
 
   // 원본 이미지를 로드하여 필터 적용
   const img = new Image();
-  img.crossOrigin = "anonymous"; // CORS 문제 방지
+  // data URL은 CORS 문제가 없으므로 crossOrigin 설정 불필요
   
   img.onload = () => {
     // 임시 캔버스 생성 (필터 적용용)
@@ -303,11 +423,24 @@ function downloadPhoto() {
     tempCanvas.height = img.naturalHeight || img.height;
     const tempCtx = tempCanvas.getContext("2d");
     
-    // 필터 적용
-    tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
-    tempCtx.filter = preset.filter;
+    // 이미지를 캔버스에 그리기
     tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
-    tempCtx.filter = "none";
+    
+    // 필터 적용 방법 선택
+    if (selectedFilter === "original") {
+      // 원본 필터인 경우 필터 적용 없음
+    } else if (supportsCanvasFilter) {
+      // ctx.filter 지원하는 경우 (대부분의 모던 브라우저)
+      tempCtx.filter = preset.filter;
+      tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+      tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+      tempCtx.filter = "none";
+    } else {
+      // ctx.filter 미지원 시 픽셀 단위로 필터 적용 (호환성 fallback)
+      const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+      const filteredData = applyPixelFilter(imageData, selectedFilter);
+      tempCtx.putImageData(filteredData, 0, 0);
+    }
     
     // blob 생성
     tempCanvas.toBlob((blob) => {
@@ -478,7 +611,7 @@ function updateFilterSelection() {
   });
 }
 
-// 완성된 사진에 필터 적용 (ctx.filter 사용)
+// 완성된 사진에 필터 적용 (모든 브라우저 호환)
 function applyFilterToResultImage() {
   if (!originalImageUrl) {
     return;
@@ -486,6 +619,12 @@ function applyFilterToResultImage() {
 
   const preset = window.CLICKSNAP_FILTERS[selectedFilter];
   if (!preset) {
+    return;
+  }
+
+  // 원본 필터인 경우 바로 적용
+  if (selectedFilter === "original") {
+    resultImg.src = originalImageUrl;
     return;
   }
 
@@ -504,11 +643,22 @@ function applyFilterToResultImage() {
     tempCanvas.height = imgHeight;
     const tempCtx = tempCanvas.getContext("2d");
     
-    // 필터 적용
-    tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
-    tempCtx.filter = preset.filter;
+    // 이미지를 캔버스에 그리기
     tempCtx.drawImage(img, 0, 0, imgWidth, imgHeight);
-    tempCtx.filter = "none";
+    
+    // 필터 적용 방법 선택
+    if (supportsCanvasFilter) {
+      // ctx.filter 지원하는 경우 (대부분의 모던 브라우저)
+      tempCtx.filter = preset.filter;
+      tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+      tempCtx.drawImage(img, 0, 0, imgWidth, imgHeight);
+      tempCtx.filter = "none";
+    } else {
+      // ctx.filter 미지원 시 픽셀 단위로 필터 적용 (호환성 fallback)
+      const imageData = tempCtx.getImageData(0, 0, imgWidth, imgHeight);
+      const filteredData = applyPixelFilter(imageData, selectedFilter);
+      tempCtx.putImageData(filteredData, 0, 0);
+    }
     
     // 필터가 적용된 이미지로 교체
     resultImg.src = tempCanvas.toDataURL("image/png");
