@@ -15,7 +15,7 @@ java {
 }
 
 bootJar {
-    archiveFileName = 'click-snap-1.0.0.jar'
+    archiveFileName = 'click-snap-2.0.0.jar'
 }
 
 repositories {
