@@ -29,21 +29,14 @@ dependencies {
     // 2. Validation: 요청 데이터 검증 (@NotNull, @Size 등)
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
-    // 3. Database (JPA): 파일 경로 등 메타데이터 저장
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-
-    // 4. Database (MySQL, H2)
-    runtimeOnly 'com.mysql:mysql-connector-j'
-    runtimeOnly 'com.h2database:h2'
-
-    // 5. Lombok: Getter, Setter, Builder 등 보일러플레이트 코드 제거
+    // 3. Lombok: Getter, Setter, Builder 등 보일러플레이트 코드 제거
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    // 6. DevTools: 서버 재시작 없이 코드 변경 반영 (개발 생산성 UP)
+    // 4. DevTools: 서버 재시작 없이 코드 변경 반영 (개발 생산성 UP)
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
-    // 7. Test: 테스트 코드 작성용
+    // 5. Test: 테스트 코드 작성용
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 

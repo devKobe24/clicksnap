@@ -34,8 +34,8 @@ public class PhotoController {
     /**
      * 사진 업로드 API
      * [POST] /api/photos
-     * * @param file 프론트엔드에서 formData에 담아 보낸 파일 객체 (Key: "image)
-     * @return 저장된 사진 정보 (ID, URL, 생성일)
+     * @param file 프론트엔드에서 formData에 담아 보낸 파일 객체 (Key: "image)
+     * @return 저장된 사진 접근 URL
      */
     @PostMapping
     public ResponseEntity<PhotoResponse> uploadPhoto(@RequestParam("image")MultipartFile file) {
