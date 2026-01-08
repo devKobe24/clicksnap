@@ -1,7 +1,6 @@
 // ==========================================
 // 설정 값
 // ==========================================
-const SERVER_URL = "http://localhost:8080/api/photos";
 const PHOTO_COUNT = 4; // 찍을 매수
 const COUNTDOWN_SEC = 5; // 카운트다운 초
 const STRIP_BG_COLOR = "#040404ff"; // 프레임 색상 (검정)
@@ -189,8 +188,16 @@ async function createPhotoStrip() {
   // 미니멀 스트립만 사용
   await createMinimalStrip();
 
-  // 모든 작업이 완료된 후 서버 전송
-  uploadToServer();
+  // 캔버스를 data URL로 변환하여 직접 표시 (서버 업로드 불필요)
+  const dataUrl = canvas.toDataURL("image/png");
+  originalImageUrl = dataUrl; // 원본 이미지 URL 저장 (data URL)
+  resultImg.src = dataUrl;
+
+  // 버튼 활성화
+  startBtn.disabled = false; // 다시 찍기 활성화
+  downloadBtn.disabled = false; // 사진 저장 버튼 활성화
+  retakeBtn.disabled = false; // 다시 찍기 버튼 활성화
+  filterBtn.style.display = "block"; // 필터 고르기 버튼 표시
 }
 
 // 미니멀 스트립 생성
@@ -270,40 +277,6 @@ async function createMinimalStrip() {
 }
 
 
-// 서버로 전송 (AJAX)
-function uploadToServer() {
-  canvas.toBlob((blob) => {
-    const formData = new FormData();
-    formData.append("image", blob, "my_photo_strip.png");
-
-    fetch(SERVER_URL, {
-      method: "POST",
-      body: formData,
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("업로드 실패");
-        return res.json();
-      })
-      .then((data) => {
-        console.log("업로드 성공:", data);
-
-        // 서버가 돌려준 URL로 이미지 교체
-        // (WebConfig에서 addResourceHandlers 설정 필수)
-        const serverImgUrl = "http://localhost:8080" + data.accessUrl;
-        originalImageUrl = serverImgUrl; // 원본 이미지 URL 저장
-        resultImg.src = serverImgUrl;
-
-        startBtn.disabled = false; // 다시 찍기 활성화
-        downloadBtn.disabled = false; // 사진 저장 버튼 활성화
-        retakeBtn.disabled = false; // 다시 찍기 버튼 활성화
-        filterBtn.style.display = "block"; // 필터 고르기 버튼 표시
-      })
-      .catch((err) => {
-        console.error(err);
-        startBtn.disabled = false;
-      });
-  }, "image/png");
-}
 
 // 사진 다운로드 함수 (OS/기기 무관하게 작동)
 function downloadPhoto() {
@@ -371,7 +344,7 @@ function downloadPhoto() {
   
   img.onerror = () => {
     console.error("이미지 로드 실패");
-    // CORS 문제로 로드 실패 시, resultImg의 현재 이미지 사용
+    // 로드 실패 시, resultImg의 현재 이미지 사용
     if (resultImg.src) {
       downloadFromResultImg();
     }
@@ -383,7 +356,7 @@ function downloadPhoto() {
 // resultImg의 현재 이미지를 다운로드하는 헬퍼 함수
 function downloadFromResultImg() {
   const img = new Image();
-  img.crossOrigin = "anonymous";
+  // data URL은 CORS 문제가 없으므로 crossOrigin 설정 불필요
   
   img.onload = () => {
     const tempCanvas = document.createElement("canvas");
@@ -518,7 +491,7 @@ function applyFilterToResultImage() {
 
   // 원본 이미지를 새로운 Image 객체로 로드 (왜곡 방지)
   const img = new Image();
-  img.crossOrigin = "anonymous"; // CORS 문제 방지
+  // data URL은 CORS 문제가 없으므로 crossOrigin 설정 불필요
   
   img.onload = () => {
     // 이미지의 원본 크기 사용 (왜곡 방지)
